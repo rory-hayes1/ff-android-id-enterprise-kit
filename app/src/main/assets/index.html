@@ -1,0 +1,85 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://assets.dev.frankiefinancial.io/one-sdk/FDEL-10759-idv-idkit/oneSdk.umd.js"></script>
+
+    <script>
+  async function startOneSdk() {
+    const tokenResultRaw = await fetch("https://backend.latest.frankiefinancial.io/auth/v2/machine-session", {
+            method: "POST",
+            headers: {
+                "authorization": "machine N2EyMWIzNTktN2Q1NS03YmIzLTA4ZTAtZWExZjU1MWE1MmM5Ojc4Y2UyZmQyLTE5YWUtZDg0NC01ZmIzLWM2MGUyYjI4MTBiNjozOGFiZjhkNTQzMWUzMjVlMDBlYjlhYjhlMDVhNjlkZDcwNTQ5NzFhZDk0OGY1N2Y5N2VmYjMwYzU4OTdlZjMy",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                permissions: {
+                    "preset": "one-sdk",
+                    "reference": "ramin-test7"
+                }
+            })
+        });
+
+    const tokenResult = await tokenResultRaw.json();
+
+    const sessionObjectFromBackend = tokenResult;
+
+    const oneSdk = await OneSdk({
+            session: {
+              token: sessionObjectFromBackend.token,
+              persist: true
+            },
+            //isPreloaded: false,
+            recipe: {
+              idv: {
+                provider: {
+                  name: "ocrlabs"
+                }
+              }
+            },
+            mode: "development"
+          });
+
+    const idv = oneSdk.flow("idv");
+
+    idv.on("results", async ({checkStatus, document, entityId}) => {
+        if (checkStatus) {
+          console.log("results succesfful");
+          console.log(checkStatus);
+          console.log(document);
+          console.log(entityId);
+        } else {
+          console.log("no data returned");
+        }
+    });
+
+    idv.on("error", ({ message, payload }) => {
+      console.log("received error");
+      console.log(message, payload);
+    });
+
+
+    idv.on("detection_complete", (message) => {
+      console.log("capture finished");
+      console.log(message);
+    });
+
+    idv.on("*", (message) => {
+      console.log(message);
+    });
+
+    idv.mount("#idv-el");
+
+  }
+
+</script>
+
+    <style>
+
+    </style>
+
+</head>
+<body style="background-color: white" onload="startOneSdk()">
+<div id="idv-el" style="position:fixed;top: 0;left: 0; width: 100%; height: 100%;"></div>
+</body>
